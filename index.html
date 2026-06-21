@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حافظة مستندات - الاستئناف</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px 35px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .basmala { text-align: center; font-size: 18pt; font-weight: bold; margin-bottom: 3px; color: #000; }
+        .court-header { text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 8px; }
+        .subject-line { text-align: center; font-size: 14pt; margin-bottom: 5px; }
+        .form-group { margin-bottom: 12px; display: flex; align-items: flex-start; flex-wrap: wrap; }
+        .form-group label { display: inline-block; width: 160px; font-weight: bold; margin-left: 10px; padding-top: 8px; }
+        .form-group textarea, .form-group input { padding: 6px 10px; width: 300px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; flex: 1; min-width: 200px; }
+        .form-group textarea { min-height: 60px; resize: vertical; }
+        .party-selector { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .party-selector .btn-toggle { padding: 8px 20px; border: 2px solid #0056b3; border-radius: 8px; background: white; color: #0056b3; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; }
+        .party-selector .btn-toggle:hover { background: #e9edf2; }
+        .party-selector .btn-toggle.active { background: #0056b3; color: white; }
+        .party-section { background: #f8f9fa; padding: 12px 20px; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 15px; }
+        .party-fields-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+        .party-fields-row .field-item { display: flex; align-items: center; gap: 4px; }
+        .party-fields-row .field-item label { font-weight: bold; white-space: nowrap; font-size: 14px; }
+        .party-fields-row .field-item input { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; width: 130px; font-size: 14px; }
+        .party-fields-row .field-item input:focus { outline: none; border-color: #0056b3; }
+        .signature-fields { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 15px; }
+        .signature-fields .sig-item { display: flex; align-items: center; gap: 8px; }
+        .signature-fields .sig-item label { font-weight: bold; }
+        .signature-fields .sig-item input { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; width: 200px; }
+        #staticParty { display: none; margin: 15px 0; }
+        #staticParty .static-party { font-size: 14pt; margin: 5px 0; }
+        .table-container { margin: 20px 0 15px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { border: 1px solid #888; padding: 8px 6px; text-align: center; vertical-align: top; word-wrap: break-word; white-space: normal; }
+        th { background: #e9edf2; font-weight: bold; font-size: 14pt; }
+        td.num-col, th.num-col { width: 6%; }
+        td.date-col, th.date-col { white-space: nowrap; width: 15%; }
+        td.name-col, th.name-col { width: 35%; }
+        td.reason-col, th.reason-col { width: 39%; }
+        td.del-col, th.del-col { width: 5%; }
+        td textarea, td input { width: 100%; border: 1px solid #ddd; padding: 5px; border-radius: 4px; background: transparent; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; overflow: hidden; }
+        td textarea { min-height: 36px; }
+        td textarea:focus, td input:focus { outline: none; border-color: #0056b3; }
+        .btn-row { display: flex; justify-content: center; gap: 15px; margin: 15px 0; flex-wrap: wrap; }
+        .btn { background: #0056b3; color: white; border: none; padding: 10px 25px; font-size: 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background: #003d80; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #1e7e34; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #bd2130; }
+        .btn-share { background: #25D366; }
+        .btn-share:hover { background: #128C7E; }
+        .btn-pdf { background: #dc3545; }
+        .btn-pdf:hover { background: #bd2130; }
+        .btn-sample { background: #6f42c1; }
+        .btn-sample:hover { background: #5a32a3; }
+        .note { font-size: 12px; color: #666; text-align: center; margin-top: 10px; }
+        .footer-actions { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+        @media print { .no-print { display: none !important; } .del-col, th.del-col, td.del-col { display: none !important; } #staticParty { display: block !important; } }
+        .section-title { background: #d9e2ec; font-weight: bold; font-size: 14pt; text-align: center; }
+        .col-control-panel { background: #f0f4f8; padding: 10px 15px; border-radius: 8px; border: 1px solid #dde4ec; margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+        .col-control-panel .col-item { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: bold; color: #003366; }
+        .col-control-panel input[type="range"] { width: 80px; height: 4px; cursor: pointer; }
+        .col-control-panel .col-value { min-width: 30px; text-align: center; font-size: 12px; background: white; padding: 0 4px; border-radius: 4px; border: 1px solid #ccc; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-size: 16px; z-index: 9999; display: none; }
+        .toast.error { background: #dc3545; }
+        .acknowledgment-container { margin-top: 20px; }
+        #staticAcknowledgment { display: none; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="pdfContent">
+        <div class="basmala">بسم الله الرحمن الرحيم</div>
+        <div class="court-header" id="courtDisplay">لدى محكمة استئناف مأرب والجوف</div>
+        <div class="subject-line" id="subjectDisplay">الموضوع / حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي</div>
+
+        <div class="party-selector no-print">
+            <button id="btnPlaintiff" class="btn-toggle active" onclick="selectParty('plaintiff')">📌 مقدمة من المستأنف</button>
+            <button id="btnDefendant" class="btn-toggle" onclick="selectParty('defendant')">📌 مقدمة من المستأنف ضده</button>
+        </div>
+
+        <div id="partyPlaintiff" class="party-section no-print">
+            <div class="party-fields-row">
+                <span class="field-item"><label>الاسم :</label> <input type="text" id="p1_name" value="فتحي عبده صالح قائد"></span>
+                <span class="field-item"><label>العمر :</label> <input type="text" id="p1_age" value="45 عام"></span>
+                <span class="field-item"><label>المهنة :</label> <input type="text" id="p1_job" value="موظف"></span>
+                <span class="field-item"><label>المدينة :</label> <input type="text" id="p1_city" value="الحوطة"></span>
+                <span class="field-item"><label>المحافظة :</label> <input type="text" id="p1_governorate" value="لجح"></span>
+            </div>
+        </div>
+
+        <div id="partyDefendant" class="party-section no-print" style="display:none;">
+            <div class="party-fields-row">
+                <span class="field-item"><label>الاسم :</label> <input type="text" id="p2_name" value=""></span>
+                <span class="field-item"><label>العمر :</label> <input type="text" id="p2_age" value=""></span>
+                <span class="field-item"><label>المهنة :</label> <input type="text" id="p2_job" value=""></span>
+                <span class="field-item"><label>المدينة :</label> <input type="text" id="p2_city" value=""></span>
+                <span class="field-item"><label>المحافظة :</label> <input type="text" id="p2_governorate" value=""></span>
+            </div>
+        </div>
+
+        <div id="staticParty">
+            <div class="static-party" id="staticPartyText"></div>
+        </div>
+
+        <div class="form-group no-print">
+            <label>المحكمة :</label>
+            <input type="text" id="court" placeholder="المحكمة" value="لدى محكمة استئناف مأرب والجوف">
+        </div>
+        <div class="form-group no-print">
+            <label>الموضوع :</label>
+            <input type="text" id="subject" placeholder="الموضوع" value="حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي">
+        </div>
+
+        <div class="col-control-panel no-print" id="colControlPanel">
+            <span style="font-weight:bold; color:#003366;">📏 عرض الأعمدة:</span>
+            <div class="col-item">
+                <span>م</span>
+                <input type="range" min="4" max="12" value="6" class="col-slider" data-col="0">
+                <span class="col-value">6%</span>
+            </div>
+            <div class="col-item">
+                <span>التاريخ</span>
+                <input type="range" min="10" max="25" value="15" class="col-slider" data-col="1">
+                <span class="col-value">15%</span>
+            </div>
+            <div class="col-item">
+                <span>اسم المستند</span>
+                <input type="range" min="25" max="50" value="35" class="col-slider" data-col="2">
+                <span class="col-value">35%</span>
+            </div>
+            <div class="col-item">
+                <span>وجه الاستدلال</span>
+                <input type="range" min="25" max="50" value="39" class="col-slider" data-col="3">
+                <span class="col-value">39%</span>
+            </div>
+            <div class="col-item no-print">
+                <span>حذف</span>
+                <input type="range" min="3" max="10" value="5" class="col-slider" data-col="4">
+                <span class="col-value">5%</span>
+            </div>
+            <span style="font-size:12px; color:#888; margin-right:auto;">(اسحب لتغيير العرض)</span>
+        </div>
+
+        <div class="table-container">
+            <table id="docTable">
+                <colgroup id="colGroup">
+                    <col style="width:6%;">
+                    <col style="width:15%;">
+                    <col style="width:35%;">
+                    <col style="width:39%;">
+                    <col style="width:5%;" class="no-print">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="num-col">م</th>
+                        <th class="date-col">تاريخ المستند</th>
+                        <th class="name-col">اسم المستند (مضمونه)</th>
+                        <th class="reason-col">وجه الاستدلال</th>
+                        <th class="del-col no-print">حذف</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="btn-row no-print">
+            <button class="btn btn-success" onclick="addRow()">➕ إضافة صف</button>
+            <button class="btn btn-danger" onclick="removeLastRow()">✖ حذف آخر صف</button>
+            <button class="btn btn-sample" onclick="loadSampleData()">📋 تحميل البيانات التجريبية</button>
+        </div>
+
+        <!-- حقل الإقرار القابل للتعديل (اختياري) -->
+        <div class="acknowledgment-container no-print">
+            <div class="form-group">
+                <label>الإقرار :</label>
+                <textarea id="acknowledgment" placeholder="اكتب نص الإقرار هنا... (اختياري)"></textarea>
+            </div>
+        </div>
+        <!-- مكان ظهور الإقرار في التصدير/الطباعة (مخفي وقت التحرير) -->
+        <div id="staticAcknowledgment">
+            <p><strong>إقرار:</strong> <span id="staticAckText"></span></p>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <div class="signature-fields no-print">
+                <div class="sig-item"><label>الاسم :</label> <input type="text" id="signatureName" placeholder="الاسم"></div>
+                <div class="sig-item"><label>التوقيع :</label> <input type="text" id="signatureSign" placeholder="التوقيع"></div>
+            </div>
+            <div id="staticSignature" style="display:flex; gap:40px; flex-wrap:wrap; margin-top:10px;">
+                <p><strong>الاسم :</strong> <span id="sigNameDisplay"></span></p>
+                <p><strong>التوقيع :</strong> <span id="sigSignDisplay"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-actions no-print">
+        <button class="btn" onclick="generateWord()">📄 تحميل Word</button>
+        <button class="btn btn-pdf" onclick="generatePDF()">📑 تحميل PDF</button>
+        <button class="btn btn-share" onclick="shareFile()">📤 مشاركة عبر واتساب</button>
+    </div>
+    <p class="note no-print">حقل الإقرار اختياري. إذا تُرك فارغاً لا يظهر في الملفات المصدرة. النصوص الطويلة تُلتف تلقائياً.</p>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    let currentParty = 'plaintiff';
+
+    function selectParty(type) {
+        currentParty = type;
+        const p1 = document.getElementById('partyPlaintiff');
+        const p2 = document.getElementById('partyDefendant');
+        const btn1 = document.getElementById('btnPlaintiff');
+        const btn2 = document.getElementById('btnDefendant');
+        if (type === 'plaintiff') {
+            p1.style.display = 'block';
+            p2.style.display = 'none';
+            btn1.classList.add('active');
+            btn2.classList.remove('active');
+        } else {
+            p1.style.display = 'none';
+            p2.style.display = 'block';
+            btn1.classList.remove('active');
+            btn2.classList.add('active');
+        }
+        updateStaticParty();
+    }
+
+    function getPartyData(partyType) {
+        if (partyType === 'plaintiff') {
+            return {
+                name: document.getElementById('p1_name').value || '',
+                age: document.getElementById('p1_age').value || '',
+                job: document.getElementById('p1_job').value || '',
+                city: document.getElementById('p1_city').value || '',
+                gov: document.getElementById('p1_governorate').value || ''
+            };
+        } else {
+            return {
+                name: document.getElementById('p2_name').value || '',
+                age: document.getElementById('p2_age').value || '',
+                job: document.getElementById('p2_job').value || '',
+                city: document.getElementById('p2_city').value || '',
+                gov: document.getElementById('p2_governorate').value || ''
+            };
+        }
+    }
+
+    function formatPartyString(party) {
+        let str = party.name;
+        if (party.age) str += ' - العمر ' + party.age;
+        if (party.job) str += ' - المهنة ' + party.job;
+        if (party.city) str += ' - مدينة ' + party.city;
+        if (party.gov) str += ' - محافظة ' + party.gov;
+        return str;
+    }
+
+    function updateStaticParty() {
+        const party = getPartyData(currentParty);
+        const label = currentParty === 'plaintiff' ? 'مقدمة من المستأنف' : 'مقدمة من المستأنف ضده';
+        const text = `<strong>${label} /</strong> ${formatPartyString(party)}`;
+        document.getElementById('staticPartyText').innerHTML = text;
+    }
+
+    function updateStaticSignature() {
+        document.getElementById('sigNameDisplay').textContent = document.getElementById('signatureName').value || '';
+        document.getElementById('sigSignDisplay').textContent = document.getElementById('signatureSign').value || '';
+    }
+
+    // تحديث نص الإقرار الثابت (يُستخدم في التصدير)
+    function updateStaticAcknowledgment() {
+        const ackText = document.getElementById('acknowledgment').value.trim();
+        const staticDiv = document.getElementById('staticAcknowledgment');
+        const span = document.getElementById('staticAckText');
+        if (ackText === '') {
+            staticDiv.style.display = 'none';
+            span.textContent = '';
+        } else {
+            staticDiv.style.display = 'block';
+            span.textContent = ackText;
+        }
+    }
+
+    // ======================== التوسع التلقائي لـ textarea =========================
+    function autoResizeTextarea(el) {
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight) + 'px';
+        const td = el.closest('td');
+        if (td) td.style.height = 'auto';
+    }
+
+    function attachAutoResize(row) {
+        row.querySelectorAll('textarea').forEach(ta => {
+            autoResizeTextarea(ta);
+            ta.addEventListener('input', function() { autoResizeTextarea(this); });
+        });
+    }
+
+    // ======================== إدارة الصفوف =========================
+    function addRow(data = null, isTitle = false) {
+        const tbody = document.querySelector('#docTable tbody');
+        const tr = document.createElement('tr');
+        if (isTitle) {
+            tr.innerHTML = `<td colspan="5" class="section-title" style="background:#d9e2ec;font-weight:bold;text-align:center;padding:8px;">${data.title || ''}</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+        const dateVal = data ? data.date : '';
+        const nameVal = data ? data.name : '';
+        const reasonVal = data ? data.reasoning : '';
+        tr.innerHTML = `
+            <td class="num-col">${tbody.children.length + 1}</td>
+            <td class="date-col"><input type="text" placeholder="مثال: 2022/9/22" value="${escapeHtml(dateVal)}"></td>
+            <td class="name-col"><textarea placeholder="وصف المستند">${escapeHtml(nameVal)}</textarea></td>
+            <td class="reason-col"><textarea placeholder="وجه الاستدلال">${escapeHtml(reasonVal)}</textarea></td>
+            <td class="del-col no-print"><button class="btn btn-danger no-print" style="padding:2px 8px; font-size:14px;" onclick="this.closest('tr').remove(); renumberRows();">✖</button></td>
+        `;
+        tbody.appendChild(tr);
+        renumberRows();
+        applyColumnWidths();
+        attachAutoResize(tr);
+    }
+
+    function removeLastRow() {
+        const tbody = document.querySelector('#docTable tbody');
+        if (tbody.children.length > 1) {
+            tbody.removeChild(tbody.lastChild);
+            renumberRows();
+            applyColumnWidths();
+        } else {
+            showToast('لا يمكن حذف الصف الأخير.', true);
+        }
+    }
+
+    function renumberRows() {
+        const rows = document.querySelectorAll('#docTable tbody tr');
+        let counter = 1;
+        rows.forEach(row => {
+            if (row.cells.length === 1 && row.cells[0].colSpan === 5) return;
+            if (row.cells.length > 0) row.cells[0].textContent = counter++;
+        });
+    }
+
+    // ======================== عرض الأعمدة =========================
+    function initColSliders() {
+        document.querySelectorAll('.col-slider').forEach(slider => {
+            slider.addEventListener('input', function() {
+                const display = this.parentElement.querySelector('.col-value');
+                if (display) display.textContent = this.value + '%';
+                applyColumnWidths();
+            });
+        });
+    }
+
+    function applyColumnWidths() {
+        const sliders = document.querySelectorAll('.col-slider');
+        const colgroup = document.getElementById('colGroup');
+        colgroup.innerHTML = '';
+        const widths = Array.from(sliders).map(s => s.value + '%');
+        widths.forEach(w => {
+            const col = document.createElement('col');
+            col.style.width = w;
+            colgroup.appendChild(col);
+        });
+    }
+
+    // ======================== تحميل البيانات التجريبية =========================
+    function loadSampleData() {
+        const sampleData = [
+            { date: '2022/9/22', name: 'صورة من وكالة المحامي المرتزاق أمام محكمة الاستئناف - رقم (645) صادرة من محكمة الحوطة الإندونيسية', reasoning: 'يستند بها على تقديم عرضة الطعن خلال المدة المحددة قانوناً بعد استلامها للحكم.' },
+            { date: '2022/10/3', name: 'صورة من محكمة استئناف الصادر من محكمة ماركا بانديله (101) لعام 1447 م.', reasoning: 'استند بها على تقديم عرضة الطعن خلال المدة المحددة قانوناً بعد استلامها للحكم.' },
+            { date: '2022/8/27', name: 'قارنة من مدير عام مديرية القبيلة توكيد بالرؤى الدافعية من مواطني منطقة كريز ويسكن بصورة مستمرة في مديرية تونس.', reasoning: 'استند بها على تقديم عرضة الطعن خلال المدة المحددة قانوناً بعد استلامها للحكم.' },
+            { date: '2022/8/27', name: 'قارنة من مدير شرطة مديرية تونس محافظة لجح توكيد بالرؤى الدافعية من مديرية تونس بصورة مستمرة مع استمرار في مديرية تونس.', reasoning: 'استند بها على تقديم عرضة الطعن خلال المدة المحددة قانوناً بعد استلامها للحكم.' }
+        ];
+        const tbody = document.querySelector('#docTable tbody');
+        tbody.innerHTML = '';
+        sampleData.forEach(item => addRow(item));
+        renumberRows();
+        applyColumnWidths();
+        showToast('تم تحميل البيانات التجريبية');
+    }
+
+    // ======================== تحديث العناوين =========================
+    function updateStaticHeaders() {
+        document.getElementById('courtDisplay').textContent = document.getElementById('court').value || 'لدى محكمة استئناف مأرب والجوف';
+        document.getElementById('subjectDisplay').textContent = 'الموضوع / ' + (document.getElementById('subject').value || 'حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي');
+    }
+
+    // دالة مساعدة لاستخراج نص الإقرار من الحقل (اختياري)
+    function getAcknowledgmentText() {
+        const text = document.getElementById('acknowledgment').value.trim();
+        return text; // سلسلة فارغة إذا لم يُكتب شيء
+    }
+
+    // ======================== التصدير إلى Word =========================
+    function generateWord() {
+        const court = document.getElementById('court').value || 'لدى محكمة استئناف مأرب والجوف';
+        const subject = document.getElementById('subject').value || 'حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي';
+        const party = getPartyData(currentParty);
+        const partyLabel = currentParty === 'plaintiff' ? 'مقدمة من المستأنف' : 'مقدمة من المستأنف ضده';
+        const sigName = document.getElementById('signatureName').value || '';
+        const sigSign = document.getElementById('signatureSign').value || '';
+        const ackText = getAcknowledgmentText();
+
+        const rows = document.querySelectorAll('#docTable tbody tr');
+        let documents = [];
+        rows.forEach(row => {
+            if (row.cells.length === 1 && row.cells[0].colSpan === 5) {
+                documents.push({ isTitle: true, title: row.cells[0].textContent.trim() });
+                return;
+            }
+            const num = row.cells[0].textContent.trim();
+            const date = row.cells[1].querySelector('input')?.value || '';
+            const name = row.cells[2].querySelector('textarea')?.value || '';
+            const reasoning = row.cells[3].querySelector('textarea')?.value || '';
+            documents.push({ num, date, name, reasoning });
+        });
+
+        const sliders = document.querySelectorAll('.col-slider');
+        const colWidths = [sliders[0].value + '%', sliders[1].value + '%', sliders[2].value + '%', sliders[3].value + '%'];
+
+        // إضافة فقرة الإقرار فقط إن وجدت
+        const ackSection = ackText ? `<div style="margin-top:30px;"><p><strong>إقرار:</strong> ${escapeHtml(ackText)}</p></div>` : '';
+
+        const htmlContent = `
+        <html dir="rtl" xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset="UTF-8">
+            <title>حافظة مستندات</title>
+            <style>
+                body { font-family: 'Arial', 'Simplified Arabic', sans-serif; margin: 40px; }
+                .basmala { text-align: center; font-size: 18pt; font-weight: bold; margin-bottom: 3px; }
+                .court { text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 8px; }
+                .subject { text-align: center; font-size: 14pt; margin-bottom: 5px; }
+                .party { font-size: 14pt; margin: 5px 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13pt; table-layout: fixed; }
+                th, td { border: 1px solid black; padding: 8px 5px; text-align: center; vertical-align: top; word-wrap: break-word; white-space: normal !important; overflow-wrap: break-word; }
+                th { background-color: #e0e0e0; font-weight: bold; }
+                .section-title { background-color: #d9e2ec; font-weight: bold; font-size: 14pt; text-align: center; }
+                .footer { margin-top: 40px; text-align: left; }
+                .page-footer { text-align: center; font-size: 10pt; color: #555; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 8px; direction: rtl; }
+                .col-num { width: ${colWidths[0]}; }
+                .col-date { width: ${colWidths[1]}; white-space: nowrap; }
+                .col-name { width: ${colWidths[2]}; }
+                .col-reason { width: ${colWidths[3]}; }
+            </style>
+        </head>
+        <body>
+            <div class="basmala">بسم الله الرحمن الرحيم</div>
+            <div class="court">${escapeHtml(court)}</div>
+            <div class="subject">الموضوع / ${escapeHtml(subject)}</div>
+            <div class="party"><strong>${escapeHtml(partyLabel)} /</strong> ${formatPartyString(party)}</div>
+            <div style="height:15px;"></div>
+            <table>
+                <colgroup>
+                    <col class="col-num"><col class="col-date"><col class="col-name"><col class="col-reason">
+                </colgroup>
+                <thead><tr><th>م</th><th>تاريخ المستند</th><th>اسم المستند (مضمونه)</th><th>وجه الاستدلال</th></tr></thead>
+                <tbody>
+                    ${documents.map(doc => doc.isTitle ? `<tr><td colspan="4" class="section-title">${escapeHtml(doc.title)}</td></tr>` : `<tr><td>${escapeHtml(doc.num)}</td><td style="white-space:nowrap;">${escapeHtml(doc.date)}</td><td>${escapeHtml(doc.name)}</td><td>${escapeHtml(doc.reasoning)}</td></tr>`).join('')}
+                </tbody>
+            </table>
+            ${ackSection}
+            <div class="footer">
+                <div style="display:flex; gap:40px;"><p><strong>الاسم :</strong> ${escapeHtml(sigName)}</p><p><strong>التوقيع :</strong> ${escapeHtml(sigSign)}</p></div>
+            </div>
+            <div style='mso-element:footer' dir="rtl">
+                <p class="page-footer"><span style='mso-field-code:" PAGE "'>1</span> من <span style='mso-field-code:" NUMPAGES "'>1</span></p>
+            </div>
+        </body>
+        </html>`;
+
+        const blob = new Blob([htmlContent], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'حافظة_مستندات_استئناف.doc';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('تم تحميل ملف Word بنجاح');
+    }
+
+    // ======================== تصدير PDF =========================
+    function generatePDF() {
+        const staticPartyDiv = document.getElementById('staticParty');
+        const origDisplay = staticPartyDiv.style.display;
+        staticPartyDiv.style.display = 'block';
+        updateStaticParty();
+        updateStaticAcknowledgment(); // تحديث نص الإقرار الثابت
+
+        const elementsToHide = document.querySelectorAll('.form-group, .party-section, .party-selector, .col-control-panel, .btn-row, .footer-actions, .no-print, .signature-fields, .acknowledgment-container');
+        elementsToHide.forEach(el => el.style.display = 'none');
+        document.getElementById('staticSignature').style.display = 'flex';
+        // إظهار قسم الإقرار الثابت حسب المحتوى
+        const ackDiv = document.getElementById('staticAcknowledgment');
+        if (getAcknowledgmentText() !== '') {
+            ackDiv.style.display = 'block';
+        } else {
+            ackDiv.style.display = 'none';
+        }
+
+        html2pdf().set({
+            margin: [10, 10, 10, 10],
+            filename: 'حافظة_مستندات.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(document.getElementById('pdfContent')).save().then(() => {
+            // استعادة كل شيء
+            elementsToHide.forEach(el => el.style.display = '');
+            document.getElementById('staticSignature').style.display = 'none';
+            ackDiv.style.display = 'none';
+            staticPartyDiv.style.display = origDisplay;
+            showToast('تم تحميل PDF بنجاح');
+        }).catch(err => {
+            elementsToHide.forEach(el => el.style.display = '');
+            document.getElementById('staticSignature').style.display = 'none';
+            ackDiv.style.display = 'none';
+            staticPartyDiv.style.display = origDisplay;
+            showToast('حدث خطأ: ' + err.message, true);
+        });
+    }
+
+    // ======================== المشاركة =========================
+    function shareFile() {
+        if (!navigator.share) { showToast('المشاركة غير مدعومة في هذا المتصفح.', true); return; }
+        const court = document.getElementById('court').value || 'لدى محكمة استئناف مأرب والجوف';
+        const subject = document.getElementById('subject').value || 'حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي';
+        const party = getPartyData(currentParty);
+        const partyLabel = currentParty === 'plaintiff' ? 'مقدمة من المستأنف' : 'مقدمة من المستأنف ضده';
+        const sigName = document.getElementById('signatureName').value || '';
+        const sigSign = document.getElementById('signatureSign').value || '';
+        const ackText = getAcknowledgmentText();
+
+        const rows = document.querySelectorAll('#docTable tbody tr');
+        let documents = [];
+        rows.forEach(row => {
+            if (row.cells.length === 1 && row.cells[0].colSpan === 5) {
+                documents.push({ isTitle: true, title: row.cells[0].textContent.trim() });
+                return;
+            }
+            documents.push({
+                num: row.cells[0].textContent.trim(),
+                date: row.cells[1].querySelector('input')?.value || '',
+                name: row.cells[2].querySelector('textarea')?.value || '',
+                reasoning: row.cells[3].querySelector('textarea')?.value || ''
+            });
+        });
+
+        const ackSection = ackText ? `<p style="margin-top:30px;"><strong>إقرار:</strong> ${escapeHtml(ackText)}</p>` : '';
+
+        const htmlContent = `
+        <html dir="rtl"><head><meta charset="UTF-8"><title>حافظة مستندات</title></head>
+        <body style="font-family:Arial;margin:40px;">
+            <div style="text-align:center;font-size:18pt;font-weight:bold;">بسم الله الرحمن الرحيم</div>
+            <div style="text-align:center;font-size:16pt;font-weight:bold;">${escapeHtml(court)}</div>
+            <div style="text-align:center;font-size:14pt;">الموضوع / ${escapeHtml(subject)}</div>
+            <div style="font-size:14pt;margin:5px 0;"><strong>${escapeHtml(partyLabel)} /</strong> ${formatPartyString(party)}</div>
+            <table style="width:100%;border-collapse:collapse;margin-top:20px;">
+                <thead><tr style="background:#e0e0e0;"><th style="border:1px solid black;padding:8px;">م</th><th style="border:1px solid black;padding:8px;">تاريخ المستند</th><th style="border:1px solid black;padding:8px;">اسم المستند</th><th style="border:1px solid black;padding:8px;">وجه الاستدلال</th></tr></thead>
+                <tbody>
+                    ${documents.map(doc => doc.isTitle ? `<tr><td colspan="4" style="border:1px solid black;padding:8px;background:#d9e2ec;font-weight:bold;">${escapeHtml(doc.title)}</td></tr>` : `<tr><td style="border:1px solid black;padding:8px;">${escapeHtml(doc.num)}</td><td style="border:1px solid black;padding:8px;">${escapeHtml(doc.date)}</td><td style="border:1px solid black;padding:8px;">${escapeHtml(doc.name)}</td><td style="border:1px solid black;padding:8px;">${escapeHtml(doc.reasoning)}</td></tr>`).join('')}
+                </tbody>
+            </table>
+            ${ackSection}
+            <div style="margin-top:40px;display:flex;gap:40px;"><p><strong>الاسم :</strong> ${escapeHtml(sigName)}</p><p><strong>التوقيع :</strong> ${escapeHtml(sigSign)}</p></div>
+        </body>
+        </html>`;
+        const blob = new Blob([htmlContent], { type: 'application/msword' });
+        const file = new File([blob], 'حافظة_مستندات_استئناف.doc', { type: 'application/msword' });
+        navigator.share({ title: 'حافظة مستندات', text: 'حافظة مستندات قضائية', files: [file] })
+            .then(() => showToast('تمت المشاركة بنجاح'))
+            .catch(err => { if (err.name !== 'AbortError') showToast('خطأ: ' + err.message, true); });
+    }
+
+    // ======================== دوال مساعدة =========================
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast' + (isError ? ' error' : '');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ======================== بدء التشغيل =========================
+    document.addEventListener('DOMContentLoaded', function() {
+        const tbody = document.querySelector('#docTable tbody');
+        tbody.innerHTML = '';
+        loadSampleData();
+        initColSliders();
+        applyColumnWidths();
+        updateStaticHeaders();
+        document.getElementById('court').addEventListener('input', updateStaticHeaders);
+        document.getElementById('subject').addEventListener('input', updateStaticHeaders);
+
+        const allInputs = document.querySelectorAll('#partyPlaintiff input, #partyDefendant input, #signatureName, #signatureSign, #acknowledgment');
+        allInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                updateStaticParty();
+                updateStaticSignature();
+                updateStaticAcknowledgment();
+            });
+        });
+
+        selectParty('plaintiff');
+        updateStaticSignature();
+        updateStaticAcknowledgment(); // للتأكد من حالة الإقرار الأولية (فارغ)
+    });
+</script>
+</body>
+</html>
