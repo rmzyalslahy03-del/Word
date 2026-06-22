@@ -76,7 +76,7 @@
     <div id="pdfContent">
         <div class="basmala">بسم الله الرحمن الرحيم</div>
         <div class="court-header" id="courtDisplay">لدى محكمة استئناف مأرب والجوف</div>
-        <div class="subject-line" id="subjectDisplay">الموضوع / حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي</div>
+        <div class="subject-line" id="subjectDisplay">الموضوع / حافظة مستندات بالطعن بالاستئناف</div>
 
         <div class="party-selector no-print">
             <button id="btnPlaintiff" class="btn-toggle active" onclick="selectParty('plaintiff')">📌 مقدمة من المستأنف</button>
@@ -85,11 +85,11 @@
 
         <div id="partyPlaintiff" class="party-section no-print">
             <div class="party-fields-row">
-                <span class="field-item"><label>الاسم :</label> <input type="text" id="p1_name" value="فتحي عبده صالح قائد"></span>
-                <span class="field-item"><label>العمر :</label> <input type="text" id="p1_age" value="45 عام"></span>
+                <span class="field-item"><label>الاسم :</label> <input type="text" id="p1_name" value="رمزي صادق محسن يحي الصلاحي"></span>
+                <span class="field-item"><label>العمر :</label> <input type="text" id="p1_age" value="29 عام"></span>
                 <span class="field-item"><label>المهنة :</label> <input type="text" id="p1_job" value="موظف"></span>
-                <span class="field-item"><label>المدينة :</label> <input type="text" id="p1_city" value="الحوطة"></span>
-                <span class="field-item"><label>المحافظة :</label> <input type="text" id="p1_governorate" value="لجح"></span>
+                <span class="field-item"><label>المدينة :</label> <input type="text" id="p1_city" value=""></span>
+                <span class="field-item"><label>المحافظة :</label> <input type="text" id="p1_governorate" value="اب"></span>
             </div>
         </div>
 
@@ -113,7 +113,7 @@
         </div>
         <div class="form-group no-print">
             <label>الموضوع :</label>
-            <input type="text" id="subject" placeholder="الموضوع" value="حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي">
+            <input type="text" id="subject" placeholder="الموضوع" value="حافظة مستندات بالطعن بالاستئناف">
         </div>
 
         <div class="col-control-panel no-print" id="colControlPanel">
@@ -388,7 +388,7 @@
     // ======================== تحديث العناوين =========================
     function updateStaticHeaders() {
         document.getElementById('courtDisplay').textContent = document.getElementById('court').value || 'لدى محكمة استئناف مأرب والجوف';
-        document.getElementById('subjectDisplay').textContent = 'الموضوع / ' + (document.getElementById('subject').value || 'حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي');
+        document.getElementById('subjectDisplay').textContent = 'الموضوع / ' + (document.getElementById('subject').value || 'حافظة مستندات بالطعن بالاستئناف');
     }
 
     // دالة مساعدة لاستخراج نص الإقرار من الحقل (اختياري)
@@ -400,7 +400,7 @@
     // ======================== التصدير إلى Word =========================
     function generateWord() {
         const court = document.getElementById('court').value || 'لدى محكمة استئناف مأرب والجوف';
-        const subject = document.getElementById('subject').value || 'حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي';
+        const subject = document.getElementById('subject').value || 'حافظة مستندات بالطعن بالاستئناف';
         const party = getPartyData(currentParty);
         const partyLabel = currentParty === 'plaintiff' ? 'مقدمة من المستأنف' : 'مقدمة من المستأنف ضده';
         const sigName = document.getElementById('signatureName').value || '';
@@ -529,7 +529,7 @@
     function shareFile() {
         if (!navigator.share) { showToast('المشاركة غير مدعومة في هذا المتصفح.', true); return; }
         const court = document.getElementById('court').value || 'لدى محكمة استئناف مأرب والجوف';
-        const subject = document.getElementById('subject').value || 'حافظة مستندات عرضة بأساليب الطعن بالاستئناف في الحكم الإندونيسي';
+        const subject = document.getElementById('subject').value || 'حافظة مستندات بالطعن بالاستئناف';
         const party = getPartyData(currentParty);
         const partyLabel = currentParty === 'plaintiff' ? 'مقدمة من المستأنف' : 'مقدمة من المستأنف ضده';
         const sigName = document.getElementById('signatureName').value || '';
